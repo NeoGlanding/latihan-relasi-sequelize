@@ -6,6 +6,8 @@ const port = 3000;
 const {sequelize} = require('./models');
 const {User, Role, Kelompok} = require('./models');
 
+const errorHandler = require('./middlewares/errorHandler')
+
 app.use(express.json());
 
 // User
@@ -48,12 +50,16 @@ app.get('/kelompoks', async(req, res) => {
 
 // ContactsGroups
 
-app.post('/users-kelompoks', async (req, res) => {
+app.post('/users-kelompoks', async (req, res, next) => {
     try {
         let {UserId, KelompokId} = req.body;
 
-        let user = await User.findByPk(UserId);
-        let kelompok = await Kelompok.findByPk(KelompokId);
+        let user = await User.findByPk(500);
+        let kelompok = await Kelompok.findByPk(500);
+
+        if (!user || !kelompok) {
+            next({code: 500, message: 'Error Bro'})
+        }
         
         await user.addKelompok(kelompok);
 
@@ -65,6 +71,7 @@ app.post('/users-kelompoks', async (req, res) => {
     }
 })
 
+app.use(errorHandler)
 app.listen(port, async () => {
     console.log('Running at port ' + port)
     await sequelize.authenticate();
